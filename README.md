@@ -22,21 +22,29 @@ Hermes Agent용 코드베이스 분석 보고서 스킬입니다.
 
 ## 설치
 
-### 로컬 파일로 설치
+중요: 현재 `hermes skills install`은 로컬 파일 경로를 받지 않습니다. `--help` 기준 입력값은 skill hub identifier 또는 direct HTTP(S) `SKILL.md` URL입니다.
+
+### 공개 저장소라면 HTTP(S) URL로 설치
 
 ```bash
-hermes skills install ./SKILL.md
+hermes skills install https://raw.githubusercontent.com/withqua/codebase-analysis-reports-skill/main/SKILL.md
 ```
 
-### GitHub URL로 설치
-
-프라이빗 저장소라면 GitHub 인증이 된 환경에서 raw URL 또는 clone 후 설치하세요.
+### 프라이빗 저장소라면 clone 후 수동 배치
 
 ```bash
 git clone https://github.com/withqua/codebase-analysis-reports-skill.git
-cd codebase-analysis-reports-skill
-hermes skills install ./SKILL.md
+mkdir -p ~/.hermes/skills/software-development/codebase-analysis-reports
+cp codebase-analysis-reports-skill/SKILL.md ~/.hermes/skills/software-development/codebase-analysis-reports/SKILL.md
 ```
+
+이미 Hermes 세션이 떠 있으면 새 세션에서 반영하세요.
+
+```text
+/reload-skills
+```
+
+또는 CLI를 다시 시작하세요.
 
 ## 사용 예시
 
