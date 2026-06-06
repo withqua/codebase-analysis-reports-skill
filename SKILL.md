@@ -1,7 +1,7 @@
 ---
 name: codebase-analysis-reports
 description: "Use when the user asks to analyze a codebase, plugin, library, framework, or repository and wants both a human-readable analysis report and an AI-agent handoff report. Analyze top-down first, then drill into purpose-specific details, grounding every claim in file/function evidence."
-version: 1.0.0
+version: 1.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -17,10 +17,12 @@ metadata:
 
 Use this workflow to inspect an unfamiliar codebase and produce two durable markdown artifacts:
 
-1. **Human report** — explains architecture, purpose, important flows, evidence, and practical implications in a way a developer or decision-maker can read.
-2. **AI-agent report** — a compact, explicit handoff with paths, line anchors, task-relevant facts, commands, constraints, and next-step prompts for another agent.
+1. **Human report** — short, readable explanation of architecture, purpose, key flows, evidence, and practical implications.
+2. **AI-agent report** — short operational handoff with paths, line anchors, commands, constraints, and next-step prompts.
 
 The core rule is **top-down, then deep**: understand repository identity and entrypoints first, map the component graph second, then drill into the files/functions relevant to the user's purpose. Do not start by randomly grepping sinks or reading leaf files unless the user supplied a very narrow target.
+
+Hard size rule: each generated report must be **≤ 7 KB** (`wc -c < file`). Long reports are failures. Preserve useful facts by compressing wording, using tables, and cutting low-value prose — not by inventing summaries without evidence.
 
 ## When to Use
 
@@ -98,7 +100,7 @@ Adapt the deep dive to the user's goal:
 - **Refactor/reuse:** stable abstractions, duplicate logic, integration seams, what to preserve vs replace.
 - **Reference comparison:** inspect the user-named reference tree directly and compare file-by-file or flow-by-flow before recommending decisions.
 
-For every key claim, include file paths and line ranges. For functions, classes, methods, commands, plugin fields, English section names, and other English identifiers, write the identifier first and then add a parenthesized explanation in the user's language. Example: `make_repo_rank_input`(저장소 파일 목록을 훑어 rank_input.csv를 만드는 함수), `capabilities`(플러그인이 읽기/쓰기/대화형 작업을 할 수 있음을 선언하는 필드). Do this especially in human-facing reports, and also in AI handoff reports when the identifier's role is not obvious.
+For every key claim, include file paths and line ranges. Explain non-obvious terms on first use with short parenthesized meaning, because the reader may not know terms like manifest, entrypoint, hook, registry, or adapter. Example: `manifest`(프로그램/플러그인이 이름, 진입점, 권한, hook을 호스트에 알려주는 설정 파일), `entrypoint`(실행이 처음 들어오는 지점), `hook`(특정 이벤트 때 자동 실행되는 연결점). For functions, classes, methods, commands, plugin fields, English section names, and other English identifiers, write the identifier first and then add a parenthesized explanation in the user's language. Example: `make_repo_rank_input`(저장소 파일 목록을 훑어 rank_input.csv를 만드는 함수), `capabilities`(플러그인이 읽기/쓰기/대화형 작업을 할 수 있음을 선언하는 필드). Do this especially in human-facing reports, and also in AI handoff reports when the identifier's role is not obvious.
 
 For functions, include:
 
@@ -148,6 +150,18 @@ If no evidence-backed problems were found, omit the problem section entirely or 
 
 ### 6. Write Two Reports
 
+#### Size and Brevity Rules
+
+Borrow the caveman pattern: same brain, fewer words.
+
+- **Hard cap:** each report ≤ **7 KB** by `wc -c < REPORT.md`.
+- If over 7 KB, rewrite before final response. Remove low-value prose first; keep evidence, paths, line anchors, commands, and decisions.
+- Use tables, bullets, and terse fragments. No throat-clearing, no generic intro/outro, no repeated caveats.
+- Preserve exact code identifiers, paths, commands, error strings, numbers, and line anchors.
+- Keep one good example per pattern. Do not include every function if only a few are relevant to the user goal.
+- Prefer `확인됨 / 추정 / 불확실` labels over paragraphs.
+- Auto-clarity exception: if compression would make order, safety, or a destructive action ambiguous, use a normal clear sentence.
+
 #### Human Report Required Shape
 
 Write to `CODEBASE_ANALYSIS_HUMAN.md` by default:
@@ -170,7 +184,7 @@ Write to `CODEBASE_ANALYSIS_HUMAN.md` by default:
 ## Recommended Next Steps
 ```
 
-Tone: readable first, concise second, and explanatory only as much as needed. If the user is using Korean, write human-facing headings, table headers, diagram labels, component names, summaries, and explanations in Korean. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important ones as `identifier`(사용자 언어 설명). Do not remove useful information merely to be short; instead compress wording, split dense paragraphs, use tables/diagrams, and avoid long explanatory prose that hurts readability.
+Tone: readable first, concise second. Target Korean if the user uses Korean: headings, table headers, diagram labels, component names, summaries, and explanations in Korean. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important or non-obvious ones as `identifier`(사용자 언어 설명). Explain terms like `manifest` on first use. Maximum report size is 7 KB; compress with short sentences, tables, bullets, and diagrams. Avoid long explanatory prose.
 
 #### AI-Agent Report Required Shape
 
@@ -191,7 +205,7 @@ Write to `CODEBASE_ANALYSIS_AGENT.md` by default:
 ## Suggested Prompts for Follow-up Agents
 ```
 
-Tone: terse and operational. Prefer bullet points, exact paths, commands, and line anchors over prose. Keep exact English identifiers for copy/paste, but add parenthesized Korean/user-language explanations for important function/class/field/command names.
+Tone: terse and operational. Prefer bullets, exact paths, commands, and line anchors over prose. Keep exact English identifiers for copy/paste, but add parenthesized Korean/user-language explanations for important or non-obvious function/class/field/command names. Maximum report size is 7 KB; if over budget, keep only task-relevant anchors and follow-up prompts.
 
 ## Verification Checklist
 
@@ -201,8 +215,8 @@ Before final response:
 - [ ] Recorded git status/branch and did not overwrite unrelated user changes.
 - [ ] Read manifests/entrypoints before leaf files.
 - [ ] Followed the user's stated analysis purpose.
-- [ ] Human report exists and includes a top-down map plus deep dive.
-- [ ] Agent report exists and includes paths, commands, line anchors, and constraints.
+- [ ] Human report exists, is ≤7 KB by `wc -c`, and includes a top-down map plus deep dive.
+- [ ] Agent report exists, is ≤7 KB by `wc -c`, and includes paths, commands, line anchors, and constraints.
 - [ ] Analysis limits are stated explicitly when exact understanding was blocked; uncertain claims are not presented as facts.
 - [ ] Problem/risk claims are evidence-backed; no speculative issue list.
 - [ ] Ran a lightweight validation such as checking the report files exist and include required headings.
@@ -216,5 +230,6 @@ Before final response:
 5. **Ignoring purpose.** A plugin analysis, refactor analysis, and security analysis need different deep dives even on the same repo.
 6. **Overwriting user work.** If reports already exist or the tree is dirty, check whether your paths are safe and mention what you changed.
 7. **Poor localization in human reports.** If the user is writing in Korean, do not leave user-facing section titles, table headers, diagram labels, or component names in English just because the source identifiers are English. Translate the surrounding report language; preserve exact code identifiers separately with short parenthesized explanations.
-8. **Confusing concise with incomplete.** Readability is the first priority. Keep useful facts, but make them scan-friendly with short sentences, tables, bullets, and diagrams instead of long paragraphs.
+8. **Confusing concise with incomplete.** Readability is the first priority. Keep useful facts, but make them scan-friendly with short sentences, tables, bullets, and diagrams instead of long paragraphs. Still enforce ≤7 KB per report.
 9. **Hiding uncertainty.** If runtime behavior, generated code, external services, credentials, host plugin behavior, or missing files block accurate analysis, say exactly what is uncertain and why. Do not fill the gap with confident prose.
+10. **Unexplained domain terms.** Do not assume readers know `manifest`, `entrypoint`, `hook`, `registry`, or `adapter`. Explain once in parentheses, then use the short term.
