@@ -60,7 +60,7 @@ In chat:
 Example request:
 
 ```text
-Analyze /path/to/repo. Create a human report and an AI-agent handoff report.
+Analyze /path/to/repo. My goal is to understand the plugin architecture and reusable parts of this codebase. Create a human report and an AI-agent handoff report for that purpose.
 ```
 
 ## Files

@@ -60,7 +60,7 @@ En el chat:
 Ejemplo:
 
 ```text
-Analiza /path/to/repo. Crea un informe humano y un informe de handoff para un agente de IA.
+Analiza /path/to/repo. Mi objetivo es entender la arquitectura de plugins y las partes reutilizables de esta codebase. Crea un informe humano y un informe de handoff para un agente de IA con ese propósito.
 ```
 
 ## Archivos

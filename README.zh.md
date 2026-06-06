@@ -60,7 +60,7 @@ hermes -s codebase-analysis-reports
 请求示例:
 
 ```text
-请分析 /path/to/repo。生成一份人类阅读报告和一份 AI Agent 交接报告。
+请分析 /path/to/repo。我的目的是了解这个代码库的插件结构和可复用部分。请围绕这个目的生成一份人类阅读报告和一份 AI Agent 交接报告。
 ```
 
 ## 文件
