@@ -1,7 +1,7 @@
 ---
 name: codebase-analysis-reports
 description: "Use when the user asks to analyze a codebase, plugin, library, framework, or repository and wants both a human-readable analysis report and an AI-agent handoff report. Analyze top-down first, then drill into purpose-specific details, grounding every claim in file/function evidence."
-version: 1.1.0
+version: 1.2.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -100,7 +100,7 @@ Adapt the deep dive to the user's goal:
 - **Refactor/reuse:** stable abstractions, duplicate logic, integration seams, what to preserve vs replace.
 - **Reference comparison:** inspect the user-named reference tree directly and compare file-by-file or flow-by-flow before recommending decisions.
 
-For every key claim, include file paths and line ranges. Explain non-obvious terms on first use with short parenthesized meaning, because the reader may not know terms like manifest, entrypoint, hook, registry, or adapter. Example: `manifest`(프로그램/플러그인이 이름, 진입점, 권한, hook을 호스트에 알려주는 설정 파일), `entrypoint`(실행이 처음 들어오는 지점), `hook`(특정 이벤트 때 자동 실행되는 연결점). For functions, classes, methods, commands, plugin fields, English section names, and other English identifiers, write the identifier first and then add a parenthesized explanation in the user's language. Example: `make_repo_rank_input`(저장소 파일 목록을 훑어 rank_input.csv를 만드는 함수), `capabilities`(플러그인이 읽기/쓰기/대화형 작업을 할 수 있음을 선언하는 필드). Do this especially in human-facing reports, and also in AI handoff reports when the identifier's role is not obvious.
+For every key claim, include file paths and line ranges. Explain non-obvious terms on first use with short parenthesized meaning in the user's primary language, because the reader may not know terms like manifest, entrypoint, hook, registry, or adapter. Example: `manifest`(프로그램/플러그인이 이름, 진입점, 권한, hook을 호스트에 알려주는 설정 파일), `entrypoint`(실행이 처음 들어오는 지점), `hook`(특정 이벤트 때 자동 실행되는 연결점). For functions, classes, methods, commands, plugin fields, English section names, and other English identifiers, write the identifier first and then add a parenthesized explanation in the user's language. Example: `make_repo_rank_input`(저장소 파일 목록을 훑어 rank_input.csv를 만드는 함수), `capabilities`(플러그인이 읽기/쓰기/대화형 작업을 할 수 있음을 선언하는 필드). Do this especially in human-facing reports, and also in AI handoff reports when the identifier's role is not obvious.
 
 For functions, include:
 
@@ -124,7 +124,7 @@ If a part could not be analyzed accurately, say so explicitly instead of guessin
 - what was checked before stopping
 - what evidence would be needed to resolve it
 
-Use wording like:
+Use wording in the user's primary language. Korean example:
 
 `이 부분은 <구체적 이유> 때문에 정확히 파악하기 어렵습니다. 확인한 범위는 <파일/명령/라인>까지이며, 정확한 판단을 위해서는 <필요한 추가 자료/실행 환경/권한>이 필요합니다.`
 
@@ -137,7 +137,7 @@ Common legitimate limits:
 - code path is defined through reflection/metaprogramming and no call-site evidence was found
 - repository is partial, dirty, or missing history needed for comparison
 
-Do not present uncertain conclusions as facts. Use labels such as `확인됨`, `추정`, `불확실`, or `분석 불가` where helpful.
+Do not present uncertain conclusions as facts. Use short labels in the user's primary language, such as Korean `확인됨`, `추정`, `불확실`, or `분석 불가`, where helpful.
 
 #### Evidence-Backed Problems / Risks
 
@@ -159,7 +159,7 @@ Borrow the caveman pattern: same brain, fewer words.
 - Use tables, bullets, and terse fragments. No throat-clearing, no generic intro/outro, no repeated caveats.
 - Preserve exact code identifiers, paths, commands, error strings, numbers, and line anchors.
 - Keep one good example per pattern. Do not include every function if only a few are relevant to the user goal.
-- Prefer `확인됨 / 추정 / 불확실` labels over paragraphs.
+- Prefer short certainty labels over paragraphs, translated to the user's primary language, e.g. Korean `확인됨 / 추정 / 불확실`.
 - Auto-clarity exception: if compression would make order, safety, or a destructive action ambiguous, use a normal clear sentence.
 
 #### Human Report Required Shape
@@ -184,7 +184,7 @@ Write to `CODEBASE_ANALYSIS_HUMAN.md` by default:
 ## Recommended Next Steps
 ```
 
-Tone: readable first, concise second. Target Korean if the user uses Korean: headings, table headers, diagram labels, component names, summaries, and explanations in Korean. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important or non-obvious ones as `identifier`(사용자 언어 설명). Explain terms like `manifest` on first use. Maximum report size is 7 KB; compress with short sentences, tables, bullets, and diagrams. Avoid long explanatory prose.
+Tone: readable first, concise second. Target the user's primary language: headings, table headers, diagram labels, component names, summaries, and explanations should follow the language the user is using. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important or non-obvious ones as `identifier`(short explanation in the user's primary language). Explain terms like `manifest` on first use. Maximum report size is 7 KB; compress with short sentences, tables, bullets, and diagrams. Avoid long explanatory prose.
 
 #### AI-Agent Report Required Shape
 
@@ -205,7 +205,7 @@ Write to `CODEBASE_ANALYSIS_AGENT.md` by default:
 ## Suggested Prompts for Follow-up Agents
 ```
 
-Tone: terse and operational. Prefer bullets, exact paths, commands, and line anchors over prose. Keep exact English identifiers for copy/paste, but add parenthesized Korean/user-language explanations for important or non-obvious function/class/field/command names. Maximum report size is 7 KB; if over budget, keep only task-relevant anchors and follow-up prompts.
+Tone: terse and operational. Prefer bullets, exact paths, commands, and line anchors over prose. Keep exact English identifiers for copy/paste, but add parenthesized explanations in the user's primary language for important or non-obvious function/class/field/command names. Maximum report size is 7 KB; if over budget, keep only task-relevant anchors and follow-up prompts.
 
 ## Verification Checklist
 
@@ -229,7 +229,7 @@ Before final response:
 4. **No line anchors.** Reports without file:line evidence are hard to reuse. Use `read_file`, searches, or small scripts to capture line ranges.
 5. **Ignoring purpose.** A plugin analysis, refactor analysis, and security analysis need different deep dives even on the same repo.
 6. **Overwriting user work.** If reports already exist or the tree is dirty, check whether your paths are safe and mention what you changed.
-7. **Poor localization in human reports.** If the user is writing in Korean, do not leave user-facing section titles, table headers, diagram labels, or component names in English just because the source identifiers are English. Translate the surrounding report language; preserve exact code identifiers separately with short parenthesized explanations.
+7. **Poor localization in human reports.** If the user is writing in a non-English language, do not leave user-facing section titles, table headers, diagram labels, or component names in English just because the source identifiers are English. Translate the surrounding report language into the user's primary language; preserve exact code identifiers separately with short parenthesized explanations.
 8. **Confusing concise with incomplete.** Readability is the first priority. Keep useful facts, but make them scan-friendly with short sentences, tables, bullets, and diagrams instead of long paragraphs. Still enforce ≤7 KB per report.
 9. **Hiding uncertainty.** If runtime behavior, generated code, external services, credentials, host plugin behavior, or missing files block accurate analysis, say exactly what is uncertain and why. Do not fill the gap with confident prose.
 10. **Unexplained domain terms.** Do not assume readers know `manifest`, `entrypoint`, `hook`, `registry`, or `adapter`. Explain once in parentheses, then use the short term.
