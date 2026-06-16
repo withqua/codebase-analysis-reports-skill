@@ -12,8 +12,8 @@ Hermes Agent용 코드베이스 분석 보고서 스킬입니다.
 
 코드베이스, 플러그인, 라이브러리, 프레임워크, 저장소를 분석한 뒤 두 산출물을 만들게 합니다.
 
-1. `CODEBASE_ANALYSIS_HUMAN.md` — 사용자의 주 언어 중심, 사람이 읽기 좋은 분석 보고서
-2. `CODEBASE_ANALYSIS_AGENT.md` — 후속 AI 에이전트가 바로 이어받는 실행 중심 handoff(인수인계) 보고서
+1. `CODEBASE_ANALYSIS_HUMAN.html` — 사용자의 주 언어 중심, 규격화된 디자인의 사람이 읽기 좋은 HTML 분석 보고서
+2. `CODEBASE_ANALYSIS_AGENT.md` — 후속 AI 에이전트가 바로 이어받는 실행 중심 markdown handoff(인수인계) 보고서
 
 ## 핵심 원칙
 
@@ -21,7 +21,8 @@ Hermes Agent용 코드베이스 분석 보고서 스킬입니다.
 - 그다음 component map(구성요소 지도)을 만듭니다.
 - 마지막에 사용자의 목적에 맞춰 깊게 분석합니다.
 - 주요 주장에는 file path(파일 경로)와 line anchor(라인 근거)를 붙입니다.
-- 인간용/에이전트용 보고서는 각각 `wc -c` 기준 7KB 이하입니다.
+- 인간용/에이전트용 보고서는 각각 `wc -c` 기준 HTML 30KB / MD 7KB 이하입니다.
+- HTML 보고서는 `references/html-template.html` 기반 — 다크/라이트 모드, 반응형, 코드 하이라이팅, Mermaid 다이어그램, 인쇄 최적화를 갖춘 단일 자체 완결형 파일입니다.
 - 근거 없는 문제/리스크는 쓰지 않습니다.
 - 분석하지 못한 부분은 추측하지 않고 `Analysis Limits / Uncertainty`(분석 한계/불확실성)에 씁니다.
 - `manifest`(프로그램/플러그인이 이름, 진입점, 권한, hook을 호스트에 알려주는 설정 파일)처럼 낯선 용어는 첫 등장 때 짧게 설명합니다.
@@ -66,6 +67,7 @@ hermes -s codebase-analysis-reports
 ## 파일
 
 - `SKILL.md` — 실제 Hermes Agent 스킬 정의
+- `references/html-template.html` — 인간용 HTML 보고서 템플릿 (디자인 규격)
 - `README.md` — 한국어 안내
 - `README.en.md` — English guide
 - `README.ja.md` — 日本語ガイド

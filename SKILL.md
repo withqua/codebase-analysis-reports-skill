@@ -1,7 +1,7 @@
 ---
 name: codebase-analysis-reports
 description: "Use when the user asks to analyze a codebase, plugin, library, framework, or repository and wants both a human-readable analysis report and an AI-agent handoff report. Analyze top-down first, then drill into purpose-specific details, grounding every claim in file/function evidence."
-version: 1.2.0
+version: 1.3.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -15,10 +15,10 @@ metadata:
 
 ## Overview
 
-Use this workflow to inspect an unfamiliar codebase and produce two durable markdown artifacts:
+Use this workflow to inspect an unfamiliar codebase and produce two durable artifacts:
 
-1. **Human report** — short, readable explanation of architecture, purpose, key flows, evidence, and practical implications.
-2. **AI-agent report** — short operational handoff with paths, line anchors, commands, constraints, and next-step prompts.
+1. **Human report** (`CODEBASE_ANALYSIS_HUMAN.html`) — self-contained HTML file with standardized design, readable explanation of architecture, purpose, key flows, evidence, and practical implications. Uses the template at `references/html-template.html`.
+2. **AI-agent report** (`CODEBASE_ANALYSIS_AGENT.md`) — markdown operational handoff with paths, line anchors, commands, constraints, and next-step prompts.
 
 The core rule is **top-down, then deep**: understand repository identity and entrypoints first, map the component graph second, then drill into the files/functions relevant to the user's purpose. Do not start by randomly grepping sinks or reading leaf files unless the user supplied a very narrow target.
 
@@ -42,7 +42,7 @@ Before deep work, resolve and write down:
 - `analysis_goal`: user's stated purpose. If absent, use general architecture and reuse analysis.
 - `analysis_scope`: whole repo, subdirectory, plugin, package, feature, diff, or file/function list.
 - `output_dir`: where reports will be written. Default: repo root unless the user requested another location.
-- `human_report`: default `CODEBASE_ANALYSIS_HUMAN.md`.
+- `human_report`: default `CODEBASE_ANALYSIS_HUMAN.html`.
 - `agent_report`: default `CODEBASE_ANALYSIS_AGENT.md`.
 
 If ambiguity changes which repository or scope to inspect, ask. Otherwise choose the obvious repo/scope and proceed.
@@ -154,37 +154,60 @@ If no evidence-backed problems were found, omit the problem section entirely or 
 
 Borrow the caveman pattern: same brain, fewer words.
 
-- **Hard cap:** each report ≤ **7 KB** by `wc -c < REPORT.md`.
-- If over 7 KB, rewrite before final response. Remove low-value prose first; keep evidence, paths, line anchors, commands, and decisions.
+- **AI-agent report (MD):** hard cap ≤ **7 KB** by `wc -c < REPORT.md`.
+- **Human report (HTML):** hard cap ≤ **30 KB** by `wc -c < REPORT.html`. The HTML template adds ~14 KB of boilerplate (CSS + structure); the actual content should still be tight — the higher cap accommodates markup, not verbosity.
+- If over cap, rewrite before final response. Remove low-value prose first; keep evidence, paths, line anchors, commands, and decisions.
 - Use tables, bullets, and terse fragments. No throat-clearing, no generic intro/outro, no repeated caveats.
 - Preserve exact code identifiers, paths, commands, error strings, numbers, and line anchors.
 - Keep one good example per pattern. Do not include every function if only a few are relevant to the user goal.
 - Prefer short certainty labels over paragraphs, translated to the user's primary language, e.g. Korean `확인됨 / 추정 / 불확실`.
 - Auto-clarity exception: if compression would make order, safety, or a destructive action ambiguous, use a normal clear sentence.
 
-#### Human Report Required Shape
+#### Human Report (HTML) — Design & Layout Specification
 
-Write to `CODEBASE_ANALYSIS_HUMAN.md` by default:
+Write to `CODEBASE_ANALYSIS_HUMAN.html` by default. Use the template at `references/html-template.html` as the base — fill its `{{PLACEHOLDERS}}` with actual analysis content.
 
-```markdown
-# Codebase Analysis: <name>
+**Design principles (enforced by the template):**
 
-## TL;DR
-## Scope and Evidence
-## Repository Map
-## Architecture / Flow
-```mermaid
-...
+| Element | Specification |
+|---|---|
+| Layout | Single-column, max-width 900px, centered. Section-anchored with sticky TOC. |
+| Typography | System font stack (sans-serif body, monospace code). 16px base, 1.7 line-height. |
+| Color | Dark/light mode via `prefers-color-scheme`. Accent blue (`#2563eb`). |
+| Code blocks | Monospace on secondary background, rounded corners, subtle shadow. Inline code has border. |
+| Tables | Full-width, accent-colored header row, zebra-striped rows, rounded corners. |
+| Certainty labels | Color-coded inline badges: <span style="background:#d1fae5;color:#065f46;padding:0.15em 0.5em;border-radius:4px;font-size:0.75em;font-weight:600">확인됨</span> <span style="background:#fef3c7;color:#92400e;padding:0.15em 0.5em;border-radius:4px;font-size:0.75em;font-weight:600">추정</span> <span style="background:#ffedd5;color:#9a3412;padding:0.15em 0.5em;border-radius:4px;font-size:0.75em;font-weight:600">불확실</span> <span style="background:#fee2e2;color:#991b1b;padding:0.15em 0.5em;border-radius:4px;font-size:0.75em;font-weight:600">분석불가</span> |
+| Callout boxes | Left-accented bordered boxes for warnings (yellow) and dangers (red). |
+| Mermaid | Rendered via CDN (`mermaid@10`). Diagram container has secondary background, rounded corners, centered. |
+| Responsive | Mobile: reduced padding, smaller headings/fonts. Breakpoint at 640px. |
+| Print | Clean print stylesheet: removes backgrounds, forces black text, page-break avoidance on code blocks and diagrams. |
+
+**Required sections (in order):**
+
 ```
-## Key Components
-## Purpose-Specific Deep Dive
-## How to Use / Reuse This Code
-## Evidence-Backed Problems or Risks  <!-- omit if none -->
-## Analysis Limits / Uncertainty  <!-- include only if something could not be determined accurately -->
-## Recommended Next Steps
+1. Header (repo name, date, branch, commit count, LOC)
+2. Table of Contents (auto-linked to sections)
+3. TL;DR
+4. 분석 범위 및 근거 (Scope and Evidence)
+5. 저장소 지도 (Repository Map)
+6. 아키텍처 / 흐름 (Architecture / Flow) — include Mermaid diagram when useful
+7. 주요 구성요소 (Key Components)
+8. 목적별 심층 분석 (Purpose-Specific Deep Dive)
+9. 재사용 방법 (How to Use / Reuse)
+10. 근거 기반 문제점 / 리스크 (only if evidence-backed problems found)
+11. 분석 한계 / 불확실성 (only if something could not be determined accurately)
+12. 권장 후속 작업 (Recommended Next Steps)
+13. Footer (generator, date, repo, branch)
 ```
 
-Tone: readable first, concise second. Target the user's primary language: headings, table headers, diagram labels, component names, summaries, and explanations should follow the language the user is using. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important or non-obvious ones as `identifier`(short explanation in the user's primary language). Explain terms like `manifest` on first use. Maximum report size is 7 KB; compress with short sentences, tables, bullets, and diagrams. Avoid long explanatory prose.
+**Usage pattern:**
+1. Read `references/html-template.html` to understand the template structure.
+2. Copy the template and replace each `{{PLACEHOLDER}}` with actual content.
+3. Delete any section block (including its commented wrapper) that is not applicable.
+4. Remove the Mermaid `<script>` tag if no diagrams are used.
+5. Verify HTML renders correctly by checking file size (`wc -c`) and optionally opening in a browser.
+
+Tone: readable first, concise second. Target the user's primary language: headings, table headers, diagram labels, component names, summaries, and explanations should follow the language the user is using. Keep exact English identifiers only where they are code/plugin names/commands/paths, and annotate important or non-obvious ones as `identifier`(short explanation in the user's primary language). Explain terms like `manifest` on first use.
 
 #### AI-Agent Report Required Shape
 
@@ -215,8 +238,8 @@ Before final response:
 - [ ] Recorded git status/branch and did not overwrite unrelated user changes.
 - [ ] Read manifests/entrypoints before leaf files.
 - [ ] Followed the user's stated analysis purpose.
-- [ ] Human report exists, is ≤7 KB by `wc -c`, and includes a top-down map plus deep dive.
-- [ ] Agent report exists, is ≤7 KB by `wc -c`, and includes paths, commands, line anchors, and constraints.
+- [ ] Human report exists (`CODEBASE_ANALYSIS_HUMAN.html`), is ≤30 KB by `wc -c`, uses the HTML template from `references/html-template.html` with all placeholders filled, and includes a top-down map plus deep dive.
+- [ ] Agent report exists (`CODEBASE_ANALYSIS_AGENT.md`), is ≤7 KB by `wc -c`, and includes paths, commands, line anchors, and constraints.
 - [ ] Analysis limits are stated explicitly when exact understanding was blocked; uncertain claims are not presented as facts.
 - [ ] Problem/risk claims are evidence-backed; no speculative issue list.
 - [ ] Ran a lightweight validation such as checking the report files exist and include required headings.

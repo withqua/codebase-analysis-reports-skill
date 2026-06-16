@@ -12,8 +12,8 @@ A Hermes Agent skill for concise, evidence-backed codebase analysis reports.
 
 It guides Hermes to analyze a codebase, plugin, library, framework, or repository and produce two artifacts.
 
-1. `CODEBASE_ANALYSIS_HUMAN.md` — human-readable report centered on the user's primary language
-2. `CODEBASE_ANALYSIS_AGENT.md` — operational AI-agent handoff report for follow-up work
+1. `CODEBASE_ANALYSIS_HUMAN.html` — self-contained HTML report with standardized design (dark/light mode, responsive, code highlighting, Mermaid diagrams, print-optimized)
+2. `CODEBASE_ANALYSIS_AGENT.md` — operational markdown AI-agent handoff report for follow-up work
 
 ## Core rules
 
@@ -21,7 +21,8 @@ It guides Hermes to analyze a codebase, plugin, library, framework, or repositor
 - Build a component map before drilling into details.
 - Deep-dive according to the user's purpose.
 - Back key claims with file paths and line anchors.
-- Keep each report under 7KB by `wc -c`.
+- Keep human report ≤ 30KB (HTML), agent report ≤ 7KB (MD) by `wc -c`.
+- HTML reports use the `references/html-template.html` template.
 - Do not invent problems or risks without evidence.
 - Put unknowns in `Analysis Limits / Uncertainty`.
 - Explain unfamiliar terms on first use, e.g. `manifest`(a config file that tells the host a program/plugin name, entrypoints, permissions, and hooks).
@@ -66,6 +67,7 @@ Analyze /path/to/repo. My goal is to understand the plugin architecture and reus
 ## Files
 
 - `SKILL.md` — actual Hermes Agent skill
+- `references/html-template.html` — human-report HTML template (design spec)
 - `README.md` — Korean guide
 - `README.en.md` — English guide
 - `README.ja.md` — Japanese guide

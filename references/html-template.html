@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codebase Analysis: {{REPO_NAME}}</title>
+<!--
+  Codebase Analysis Report — Human-Facing HTML Template
+  Version: 1.0.0
+  Self-contained. Only Mermaid loads from CDN (optional — remove if no diagrams).
+  Fill {{PLACEHOLDERS}} with actual analysis data.
+  Delete any section that is not applicable.
+-->
+<style>
+  /* ============================================================
+     CSS Custom Properties (Design Tokens)
+     ============================================================ */
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --text: #1a1a2e;
+    --text-secondary: #495057;
+    --border: #dee2e6;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --radius: 8px;
+    --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --max-width: 900px;
+
+    /* Certainty label colors */
+    --confirmed-bg: #d1fae5; --confirmed-text: #065f46;
+    --inferred-bg: #fef3c7;  --inferred-text: #92400e;
+    --uncertain-bg: #ffedd5; --uncertain-text: #9a3412;
+    --unknown-bg: #fee2e2;   --unknown-text: #991b1b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --bg-secondary: #1e293b;
+      --text: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent: #60a5fa;
+      --accent-light: #1e3a5f;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+
+      --confirmed-bg: #064e3b; --confirmed-text: #6ee7b7;
+      --inferred-bg: #78350f;  --inferred-text: #fcd34d;
+      --uncertain-bg: #7c2d12; --uncertain-text: #fdba74;
+      --unknown-bg: #7f1d1d;   --unknown-text: #fca5a5;
+    }
+  }
+
+  /* ============================================================
+     Reset & Base
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============================================================
+     Layout
+     ============================================================ */
+  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* ============================================================
+     Header
+     ============================================================ */
+  .report-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+  .report-header .container { padding: 0; }
+  .report-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .report-header .meta {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-size: 0.875rem; color: var(--text-secondary);
+  }
+  .report-header .meta span { display: flex; align-items: center; gap: 0.25rem; }
+
+  /* ============================================================
+     Table of Contents
+     ============================================================ */
+  .toc {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .toc h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; color: var(--text-secondary); }
+  .toc ol { padding-left: 1.25rem; }
+  .toc li { margin-bottom: 0.35rem; }
+  .toc a { color: var(--accent); text-decoration: none; font-size: 0.9375rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ============================================================
+     Sections
+     ============================================================ */
+  section { margin-bottom: 2.5rem; }
+  h2 {
+    font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em;
+    padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent);
+    margin-bottom: 1rem; color: var(--text);
+  }
+  h3 {
+    font-size: 1.15rem; font-weight: 600;
+    margin: 1.25rem 0 0.5rem; color: var(--text);
+  }
+  p { margin-bottom: 0.75rem; color: var(--text); }
+  a { color: var(--accent); }
+
+  /* ============================================================
+     Certainty Labels
+     ============================================================ */
+  .label {
+    display: inline-block; font-size: 0.75rem; font-weight: 600;
+    padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase;
+    letter-spacing: 0.03em; vertical-align: middle;
+  }
+  .label-confirmed { background: var(--confirmed-bg); color: var(--confirmed-text); }
+  .label-inferred  { background: var(--inferred-bg);  color: var(--inferred-text); }
+  .label-uncertain { background: var(--uncertain-bg); color: var(--uncertain-text); }
+  .label-unknown   { background: var(--unknown-bg);   color: var(--unknown-text); }
+
+  /* ============================================================
+     Tables
+     ============================================================ */
+  table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem;
+    font-size: 0.875rem; border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  thead { background: var(--accent); color: #ffffff; }
+  th {
+    padding: 0.65rem 0.85rem; text-align: left; font-weight: 600;
+    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  td { padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: var(--bg-secondary); }
+
+  /* ============================================================
+     Code Blocks
+     ============================================================ */
+  code {
+    font-family: var(--font-mono); font-size: 0.85em;
+    background: var(--bg-secondary); padding: 0.15em 0.35em;
+    border-radius: 3px; border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    overflow-x: auto; margin: 1rem 0 1.5rem; line-height: 1.55;
+    box-shadow: var(--shadow);
+  }
+  pre code {
+    background: none; padding: 0; border: none;
+    font-size: 0.8125rem; line-height: 1.6;
+  }
+
+  /* ============================================================
+     Mermaid Diagrams
+     ============================================================ */
+  .mermaid {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+    margin: 1rem 0 1.5rem; text-align: center;
+    overflow-x: auto;
+  }
+
+  /* ============================================================
+     Lists
+     ============================================================ */
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.35rem; }
+
+  /* ============================================================
+     Callout Boxes
+     ============================================================ */
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-light);
+    padding: 1rem 1.25rem; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1rem 0 1.5rem;
+  }
+  .callout-warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+  }
+  .callout-danger {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    .callout-warning { background: #422006; }
+    .callout-danger  { background: #450a0a; }
+  }
+
+  /* ============================================================
+     Footer
+     ============================================================ */
+  .report-footer {
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8125rem; color: var(--text-secondary);
+  }
+
+  /* ============================================================
+     Print Styles
+     ============================================================ */
+  @media print {
+    :root { --bg: #fff; --bg-secondary: #f8f9fa; --text: #000; --text-secondary: #333; }
+    .report-header { background: none; border-bottom: 2px solid #000; }
+    body { font-size: 12pt; }
+    .container { max-width: 100%; padding: 0; }
+    pre, .mermaid { break-inside: avoid; }
+    .toc { break-after: page; }
+  }
+
+  /* ============================================================
+     Responsive
+     ============================================================ */
+  @media (max-width: 640px) {
+    .container { padding: 1rem; }
+    .report-header { padding: 1.5rem 1rem 1.25rem; }
+    .report-header h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 0.4rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="report-header">
+  <div class="container">
+    <h1>Codebase Analysis: {{REPO_NAME}}</h1>
+    <div class="meta">
+      <span>📅 {{DATE}}</span>
+      <span>🌿 Branch: <code>{{BRANCH}}</code></span>
+      <span>📦 {{COMMIT_COUNT}} commits</span>
+      <span>📏 {{LOC}} lines of code</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ==========================================================
+       TABLE OF CONTENTS
+       ========================================================== -->
+  <nav class="toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#tldr">TL;DR</a></li>
+      <li><a href="#scope">분석 범위 및 근거</a></li>
+      <li><a href="#map">저장소 지도</a></li>
+      <li><a href="#architecture">아키텍처 / 흐름</a></li>
+      <li><a href="#components">주요 구성요소</a></li>
+      <li><a href="#deepdive">목적별 심층 분석</a></li>
+      <li><a href="#reuse">재사용 방법</a></li>
+      <!-- <li><a href="#problems">근거 기반 문제점 / 리스크</a></li> -->
+      <!-- <li><a href="#limits">분석 한계 / 불확실성</a></li> -->
+      <li><a href="#next">권장 후속 작업</a></li>
+    </ol>
+  </nav>
+
+  <!-- ==========================================================
+       TL;DR
+       ========================================================== -->
+  <section id="tldr">
+    <h2>TL;DR</h2>
+    {{TLDR_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       SCOPE AND EVIDENCE
+       ========================================================== -->
+  <section id="scope">
+    <h2>분석 범위 및 근거</h2>
+    {{SCOPE_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       REPOSITORY MAP
+       ========================================================== -->
+  <section id="map">
+    <h2>저장소 지도</h2>
+    {{REPO_MAP_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       ARCHITECTURE / FLOW
+       ========================================================== -->
+  <section id="architecture">
+    <h2>아키텍처 / 흐름</h2>
+    {{ARCHITECTURE_CONTENT}}
+
+    <!-- Mermaid diagram (optional — remove if not applicable) -->
+    <!--
+    <div class="mermaid">
+      {{MERMAID_DIAGRAM}}
+    </div>
+    -->
+  </section>
+
+  <!-- ==========================================================
+       KEY COMPONENTS
+       ========================================================== -->
+  <section id="components">
+    <h2>주요 구성요소</h2>
+    {{COMPONENTS_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       PURPOSE-SPECIFIC DEEP DIVE
+       ========================================================== -->
+  <section id="deepdive">
+    <h2>목적별 심층 분석</h2>
+    {{DEEPDIVE_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       HOW TO USE / REUSE
+       ========================================================== -->
+  <section id="reuse">
+    <h2>재사용 방법</h2>
+    {{REUSE_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       PROBLEMS / RISKS (omit if none)
+       ========================================================== -->
+  <!--
+  <section id="problems">
+    <h2>근거 기반 문제점 / 리스크</h2>
+    {{PROBLEMS_CONTENT}}
+  </section>
+  -->
+
+  <!-- ==========================================================
+       ANALYSIS LIMITS / UNCERTAINTY (include only if needed)
+       ========================================================== -->
+  <!--
+  <section id="limits">
+    <h2>분석 한계 / 불확실성</h2>
+    {{LIMITS_CONTENT}}
+  </section>
+  -->
+
+  <!-- ==========================================================
+       RECOMMENDED NEXT STEPS
+       ========================================================== -->
+  <section id="next">
+    <h2>권장 후속 작업</h2>
+    {{NEXT_STEPS_CONTENT}}
+  </section>
+
+  <!-- ==========================================================
+       FOOTER
+       ========================================================== -->
+  <footer class="report-footer">
+    <p>Generated by <strong>Hermes Agent</strong> — Codebase Analysis Reports Skill v{{SKILL_VERSION}}</p>
+    <p>Analysis date: {{DATE}} · Repository: <code>{{REPO_NAME}}</code> · Branch: <code>{{BRANCH}}</code></p>
+  </footer>
+
+</div>
+
+<!-- Mermaid JS (remove if no diagrams in report) -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
+
+</body>
+</html>
