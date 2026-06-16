@@ -12,8 +12,8 @@
 
 它会引导 Hermes 分析代码库、插件、库、框架或仓库，并生成两个产物。
 
-1. `CODEBASE_ANALYSIS_HUMAN.md` — 以用户主要语言为中心、适合人阅读的分析报告
-2. `CODEBASE_ANALYSIS_AGENT.md` — 供后续 AI Agent 直接接手的执行型 handoff(交接) 报告
+1. `CODEBASE_ANALYSIS_HUMAN.html` — 标准化设计（暗/亮模式、响应式、代码高亮、Mermaid 图表、打印优化）的自包含 HTML 分析报告
+2. `CODEBASE_ANALYSIS_AGENT.md` — 供后续 AI Agent 直接接手的执行型 markdown handoff(交接) 报告
 
 ## 核心规则
 
@@ -21,7 +21,7 @@
 - 再绘制 component map(组件地图)。
 - 最后根据用户目的深入分析。
 - 关键结论必须附带 file path(文件路径)和 line anchor(行号依据)。
-- 人类报告/Agent 报告各自按 `wc -c` 控制在 7KB 以下。
+- 人类报告(HTML) ≤ 30KB，Agent 报告(MD) ≤ 7KB（按 `wc -c` 计算）。
 - 没有证据的问题或风险不要写。
 - 无法确认的部分写入 `Analysis Limits / Uncertainty`(分析限制/不确定性)，不要猜。
 - 像 `manifest`(告诉宿主程序/插件的名称、入口、权限和 hook 的配置文件) 这类术语，首次出现时要简短解释。
@@ -66,6 +66,7 @@ hermes -s codebase-analysis-reports
 ## 文件
 
 - `SKILL.md` — 实际 Hermes Agent 技能
+- `references/html-template.html` — 人类报告 HTML 模板（设计规范）
 - `README.md` — 韩语指南
 - `README.en.md` — English guide
 - `README.ja.md` — 日本語ガイド

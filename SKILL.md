@@ -22,7 +22,7 @@ Use this workflow to inspect an unfamiliar codebase and produce two durable arti
 
 The core rule is **top-down, then deep**: understand repository identity and entrypoints first, map the component graph second, then drill into the files/functions relevant to the user's purpose. Do not start by randomly grepping sinks or reading leaf files unless the user supplied a very narrow target.
 
-Hard size rule: each generated report must be **≤ 7 KB** (`wc -c < file`). Long reports are failures. Preserve useful facts by compressing wording, using tables, and cutting low-value prose — not by inventing summaries without evidence.
+Hard size rule: AI-agent report (MD) must be **≤ 7 KB**, human report (HTML) must be **≤ 30 KB** (`wc -c < file`). The HTML template adds ~14 KB of boilerplate; the higher cap accommodates markup, not verbosity. Long reports are failures. Preserve useful facts by compressing wording, using tables, and cutting low-value prose — not by inventing summaries without evidence.
 
 ## When to Use
 

@@ -12,8 +12,8 @@ Una skill para Hermes Agent que genera informes de análisis de codebases de for
 
 Guía a Hermes para analizar una codebase, plugin, librería, framework o repositorio y producir dos artefactos.
 
-1. `CODEBASE_ANALYSIS_HUMAN.md` — informe legible centrado en el idioma principal del usuario
-2. `CODEBASE_ANALYSIS_AGENT.md` — informe operativo de handoff(traspaso) para otro agente de IA
+1. `CODEBASE_ANALYSIS_HUMAN.html` — informe HTML autónomo con diseño estandarizado (modo oscuro/claro, responsivo, código resaltado, diagramas Mermaid, optimizado para impresión)
+2. `CODEBASE_ANALYSIS_AGENT.md` — informe operativo markdown de handoff(traspaso) para otro agente de IA
 
 ## Reglas principales
 
@@ -21,7 +21,7 @@ Guía a Hermes para analizar una codebase, plugin, librería, framework o reposi
 - Luego crear un component map(mapa de componentes).
 - Después profundizar según el objetivo del usuario.
 - Cada afirmación importante debe tener file path(ruta de archivo) y line anchor(referencia de línea).
-- Cada informe debe medir 7KB o menos según `wc -c`.
+- Informe humano (HTML) ≤ 30KB, informe agente (MD) ≤ 7KB según `wc -c`.
 - No escribir problemas o riesgos sin evidencia.
 - Lo no confirmado va en `Analysis Limits / Uncertainty`(límites/incertidumbre del análisis), no en suposiciones.
 - Explicar términos no obvios al primer uso, por ejemplo `manifest`(archivo de configuración que informa al host el nombre, entradas, permisos y hooks de un programa/plugin).
@@ -66,6 +66,7 @@ Analiza /path/to/repo. Mi objetivo es entender la arquitectura de plugins y las 
 ## Archivos
 
 - `SKILL.md` — skill real de Hermes Agent
+- `references/html-template.html` — plantilla HTML para informe humano (especificación de diseño)
 - `README.md` — guía en coreano
 - `README.en.md` — English guide
 - `README.ja.md` — 日本語ガイド
